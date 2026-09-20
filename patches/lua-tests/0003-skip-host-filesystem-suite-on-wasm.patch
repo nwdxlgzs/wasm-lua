@@ -1,0 +1,17 @@
+diff --git a/files.lua b/files.lua
+index 10d59b9..37a55fe 100644
+--- a/files.lua
++++ b/files.lua
+@@ -1,6 +1,12 @@
+ -- $Id: testes/files.lua $
+ -- See Copyright Notice in file lua.h
+ 
++if rawget(_G, "_WASM") then
++  (Message or print)
++      ('\n >>> WASM host: skipping host filesystem and /dev/null tests <<<\n')
++  return
++end
++
+ global <const> *
+ 
+ local debug = require "debug"

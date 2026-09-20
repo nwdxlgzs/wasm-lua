@@ -1,0 +1,21 @@
+diff --git a/errors.lua b/errors.lua
+index 885b5cb..80515cf 100644
+--- a/errors.lua
++++ b/errors.lua
+@@ -693,8 +693,14 @@ checksyntax("for >> do end", "", ">>", 1)
+ -- test invalid non-printable char in a chunk
+ checksyntax("a\1a = 1", "", "<\\1>", 1)
+ 
+--- test 255 as first char in a chunk
+-checksyntax("\255a = 1", "", "<\\255>", 1)
++-- The wasm-lua UTF-8 identifier patch recognizes high bytes as a possible
++-- name start and then validates the complete UTF-8 sequence.
++if rawget(_G, "_WASM") then
++  local message = doit("\255a = 1")
++  assert(string.find(message, "invalid UTF-8 sequence in identifier", 1, true))
++else
++  checksyntax("\255a = 1", "", "<\\255>", 1)
++end
+ 
+ doit('I = load("a=9+"); aaa=3')
+ assert(_G.aaa==3 and not _G.I)

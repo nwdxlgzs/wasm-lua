@@ -1,0 +1,17 @@
+node_modules/
+.tools/
+build/
+generated/
+dist/
+release/
+vendor/
+public/wasm/
+public/grammar/
+coverage/
+test-results/
+playwright-report/
+*.tsbuildinfo
+*.log
+test-*.html.png
+.DS_Store
+Thumbs.db

@@ -1,0 +1,12 @@
+packages:
+  - .
+
+onlyBuiltDependencies:
+  - "@tree-sitter-grammars/tree-sitter-lua"
+  - esbuild
+  - tree-sitter-cli
+
+allowBuilds:
+  "@tree-sitter-grammars/tree-sitter-lua": true
+  esbuild: true
+  tree-sitter-cli: true

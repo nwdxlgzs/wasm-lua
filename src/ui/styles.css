@@ -1,0 +1,359 @@
+body.workbench-page {
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  color-scheme: dark;
+  background: #090d14;
+}
+body.workbench-page > lua-workbench { width: 100%; height: 100%; }
+
+lua-workbench {
+  display: block;
+  position: relative;
+  min-width: 0;
+  min-height: 420px;
+  overflow: hidden;
+  contain: layout paint;
+  color-scheme: dark;
+  font-family: Inter, "Segoe UI Variable", "Microsoft YaHei UI", system-ui, sans-serif;
+  color: #dce6f4;
+  background: #090d14;
+  --surface: #0d131d;
+  --surface-2: #111a27;
+  --surface-3: #172333;
+  --surface-raised: #1b293a;
+  --border: #24364a;
+  --muted: #8091a8;
+  --text: #dce6f4;
+  --accent: #43d6a4;
+  --accent-2: #63a9ff;
+  --danger: #ff6b7a;
+  --warning: #f6c665;
+}
+lua-workbench lua-plugin-outlet { display: contents; }
+
+lua-workbench *, lua-workbench *::before, lua-workbench *::after { box-sizing: border-box; }
+lua-workbench button, lua-workbench select, lua-workbench input { font: inherit; }
+lua-workbench button, lua-workbench select, lua-workbench input {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  border-radius: 6px;
+}
+lua-workbench button, lua-workbench select { min-height: 29px; }
+lua-workbench button { padding: 0 10px; cursor: pointer; }
+lua-workbench button:hover:not(:disabled) { border-color: #467094; background: var(--surface-3); }
+lua-workbench button:focus-visible, lua-workbench select:focus-visible,
+lua-workbench input:focus-visible, lua-workbench a:focus-visible {
+  outline: 2px solid var(--accent-2); outline-offset: 1px;
+}
+lua-workbench button:disabled { cursor: default; opacity: .42; }
+lua-workbench button.primary {
+  color: #04120d; background: var(--accent); border-color: var(--accent); font-weight: 700;
+}
+lua-workbench button.danger { color: #ffdfe3; border-color: #71333f; }
+lua-workbench select { padding: 0 28px 0 9px; }
+lua-workbench input { min-height: 31px; padding: 5px 8px; }
+lua-workbench a { color: #7cb7ff; }
+lua-workbench kbd {
+  margin-left: 5px; color: inherit; opacity: .62; font: 10px/1.2 "Cascadia Code", Consolas, monospace;
+}
+
+lua-workbench .app-shell {
+  width: 100%; height: 100%; min-height: inherit;
+  display: grid; grid-template-rows: 44px 39px minmax(0, 1fr) 24px;
+}
+lua-workbench .titlebar {
+  display: flex; align-items: center; gap: 8px; min-width: 0; padding: 0 10px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, #121b28, #0d141e);
+}
+lua-workbench .brand {
+  display: flex; align-items: center; gap: 8px; margin-right: 4px;
+  font-weight: 700; white-space: nowrap;
+}
+lua-workbench .logo {
+  display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px;
+  color: #06140f; background: linear-gradient(135deg, #65f0bd, #4ea8ff);
+  font: 800 12px/1 monospace;
+}
+lua-workbench .spacer { flex: 1; }
+lua-workbench .segmented {
+  display: flex; flex: none; padding: 2px; border: 1px solid var(--border);
+  border-radius: 7px; background: #090f17;
+}
+lua-workbench .segmented a {
+  padding: 4px 9px; border-radius: 4px; color: var(--muted);
+  text-decoration: none; font-size: 12px;
+}
+lua-workbench .segmented a.active { color: var(--text); background: var(--surface-3); }
+
+lua-workbench .commandbar {
+  display: flex; align-items: center; gap: 8px; min-width: 0; overflow-x: auto;
+  overflow-y: hidden; padding: 4px 8px; scrollbar-width: thin;
+  border-bottom: 1px solid var(--border); background: #0b111a;
+}
+lua-workbench .tool-group { display: flex; flex: none; align-items: center; gap: 5px; white-space: nowrap; }
+lua-workbench .tool-separator { flex: none; width: 1px; height: 23px; background: var(--border); }
+lua-workbench .view-tools button[aria-pressed="true"] { color: #07120f; background: var(--accent); }
+
+lua-workbench .main-area {
+  position: relative; min-width: 0; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr);
+}
+lua-workbench .main-area.with-sidebar { grid-template-columns: minmax(420px, 1fr) minmax(270px, 320px); }
+lua-workbench .center-pane {
+  min-width: 0; min-height: 0; display: grid;
+  grid-template-rows: 34px minmax(180px, 1fr) minmax(112px, 27%);
+}
+lua-workbench .tabbar {
+  display: flex; min-width: 0; overflow-x: auto; align-items: stretch;
+  background: var(--surface); border-bottom: 1px solid var(--border); scrollbar-width: thin;
+}
+lua-workbench .tab {
+  flex: none; display: flex; align-items: center; gap: 7px; min-height: 33px;
+  padding: 0 12px; border: 0; border-right: 1px solid var(--border);
+  border-radius: 0; background: var(--surface); color: var(--muted); font-size: 12px;
+}
+lua-workbench .tab.active {
+  color: var(--text); border-top: 2px solid var(--accent); background: var(--surface-2);
+}
+lua-workbench .dot { width: 7px; height: 7px; background: #70d7ff; border-radius: 50%; }
+lua-workbench .new-tab { flex: none; border: 0; border-radius: 0; background: transparent; }
+lua-workbench .editor { min-width: 0; min-height: 0; position: relative; }
+
+lua-workbench .bottom-panel {
+  min-height: 0; overflow: hidden; display: grid; grid-template-rows: 31px minmax(0, 1fr);
+  border-top: 1px solid var(--border); background: #080c12;
+}
+lua-workbench .panel-tabs, lua-workbench .side-tabs {
+  display: flex; align-items: center; min-width: 0; background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+lua-workbench .panel-tabs > button, lua-workbench .side-tabs > button {
+  min-height: 30px; border: 0; border-radius: 0; background: transparent;
+  color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .6px;
+}
+lua-workbench .panel-tabs > button.active, lua-workbench .side-tabs > button.active {
+  color: var(--text); box-shadow: inset 0 -2px var(--accent);
+}
+lua-workbench .count {
+  display: inline-block; min-width: 17px; margin-left: 3px; padding: 1px 4px;
+  border-radius: 8px; background: var(--surface-3); text-align: center;
+}
+lua-workbench .link-button {
+  min-height: 24px; padding: 0 8px; border: 0; background: transparent;
+  color: var(--accent-2); font-size: 11px;
+}
+lua-workbench .output-content { min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; }
+lua-workbench .console {
+  min-height: 0; overflow: auto; margin: 0; padding: 9px 12px 18px; white-space: pre-wrap;
+  font: 12.5px/1.55 "Cascadia Code", Consolas, monospace; color: #b9c9dc;
+}
+lua-workbench .console-input { margin: 5px 9px 8px; background: #090f17; }
+lua-workbench .problem-list, lua-workbench .search-results { min-height: 0; overflow: auto; }
+lua-workbench .problem-row, lua-workbench .search-row {
+  width: 100%; min-height: 28px; display: grid; align-items: center; gap: 8px;
+  border: 0; border-radius: 0; border-bottom: 1px solid rgba(36,54,74,.42);
+  background: transparent; text-align: left;
+}
+lua-workbench .problem-row { grid-template-columns: auto minmax(0, 1fr) auto; }
+lua-workbench .problem-error { color: var(--danger); }
+lua-workbench .problem-warning { color: var(--warning); }
+lua-workbench .problem-source { color: var(--muted); font-size: 11px; }
+lua-workbench .workspace-search { min-height: 0; display: grid; grid-template-rows: auto auto minmax(0, 1fr); }
+lua-workbench .search-controls { display: flex; gap: 6px; padding: 7px 9px; }
+lua-workbench .search-controls input { min-width: 100px; flex: 1; background: #090f17; }
+lua-workbench .search-flags { display: flex; gap: 2px; }
+lua-workbench .search-flags button { min-width: 31px; padding: 0 5px; font: 11px/1 monospace; }
+lua-workbench .search-flags button[aria-pressed="true"] { color: #06140f; background: var(--accent); }
+lua-workbench .search-error { padding: 0 9px 6px; color: #ff9ca6; font-size: 12px; }
+lua-workbench .search-row { grid-template-columns: 150px minmax(0, 1fr); }
+lua-workbench .search-row code { overflow: hidden; color: #b9c9dc; text-overflow: ellipsis; white-space: nowrap; }
+
+lua-workbench .sidebar {
+  min-width: 0; min-height: 0; display: grid; grid-template-rows: 31px minmax(0, 1fr);
+  overflow: hidden; background: var(--surface); border-left: 1px solid var(--border);
+  z-index: 8;
+}
+lua-workbench .side-content {
+  min-height: 0; overflow: auto; overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+lua-workbench .debug-section { border-bottom: 1px solid var(--border); }
+lua-workbench .debug-heading {
+  min-height: 32px; display: flex; align-items: center; padding: 0 10px;
+  color: #aebdd0; background: #101925; font-size: 11px; font-weight: 700;
+  letter-spacing: .6px; text-transform: uppercase;
+}
+/* The sidebar owns scrolling. Nested scroll areas made expanded tables,
+   call stacks and watches fight for the mouse wheel and keyboard focus. */
+lua-workbench .debug-list { min-height: 34px; overflow: visible; }
+lua-workbench .debug-row {
+  width: 100%; min-height: 27px; display: grid;
+  grid-template-columns: minmax(70px, 1fr) minmax(45px, auto) auto;
+  align-items: center; gap: 7px; padding: 4px 9px;
+  border-bottom: 1px solid rgba(36,54,74,.42);
+  font: 12px/1.35 "Cascadia Code", Consolas, monospace;
+}
+lua-workbench .row-button { border: 0; border-radius: 0; background: transparent; text-align: left; }
+lua-workbench .row-button.active { background: color-mix(in srgb, var(--accent) 16%, transparent); }
+lua-workbench .debug-row:hover, lua-workbench .outline-row:hover { background: #162232; }
+lua-workbench .debug-row .value {
+  max-width: 140px; overflow: hidden; color: #88d9bd; text-overflow: ellipsis; white-space: nowrap;
+}
+lua-workbench .variable-row {
+  grid-template-columns: 18px minmax(72px, 1fr) minmax(40px, auto) 25px;
+  gap: 5px; padding-left: calc(5px + var(--depth) * 14px);
+}
+lua-workbench .scope-heading {
+  width: 100%; min-height: 27px; display: flex; align-items: center;
+  justify-content: space-between; padding: 3px 9px 3px 14px;
+  border: 0; border-radius: 0; border-bottom: 1px solid rgba(36,54,74,.42);
+  background: #0c141f; color: #aebdd0; text-align: left; font-size: 11px;
+}
+lua-workbench .scope-heading:hover { background: #152130; }
+lua-workbench .scope-heading span:last-child { color: var(--muted); }
+lua-workbench .variable-toggle, lua-workbench .variable-edit {
+  display: grid; place-items: center; min-width: 18px; width: 18px;
+  min-height: 18px; height: 18px; padding: 0; border: 0; border-radius: 3px;
+  background: transparent; color: var(--muted); line-height: 1;
+}
+lua-workbench .variable-toggle:not(:disabled):hover,
+lua-workbench .variable-edit:not(:disabled):hover {
+  color: var(--text); background: var(--surface-3);
+}
+lua-workbench .variable-toggle:disabled { opacity: .28; }
+lua-workbench .variable-edit { width: 25px; color: var(--accent-2); font-size: 12px; }
+lua-workbench .variable-name, lua-workbench .variable-value {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+lua-workbench .variable-value { color: #88d9bd; text-align: right; }
+lua-workbench .empty { padding: 10px 11px; color: var(--muted); font-size: 12px; }
+lua-workbench .panel-empty { padding: 24px 12px; }
+lua-workbench .panel-input { width: calc(100% - 16px); margin: 7px 8px; background: #090f17; }
+lua-workbench .breakpoint-row {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center;
+  border-bottom: 1px solid rgba(36,54,74,.42);
+}
+lua-workbench .breakpoint-row > input { margin-left: 8px; accent-color: var(--danger); }
+lua-workbench .icon-button {
+  min-width: 27px; min-height: 27px; padding: 0; border: 0; background: transparent;
+  color: var(--muted); font-size: 16px;
+}
+
+lua-workbench .panel-actions { display: flex; flex-wrap: wrap; gap: 5px; padding: 8px; }
+lua-workbench .file-list, lua-workbench .outline-list { min-height: 0; overflow: auto; }
+lua-workbench .file-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; }
+lua-workbench .file-row.active { background: #162232; box-shadow: inset 2px 0 var(--accent); }
+lua-workbench .file-open {
+  min-width: 0; display: flex; align-items: center; gap: 7px; overflow: hidden;
+  border: 0; border-radius: 0; background: transparent; text-align: left;
+}
+lua-workbench .file-open span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+lua-workbench .file-icon { color: #70d7ff; font: 9px/1 monospace; }
+lua-workbench .outline-row {
+  width: 100%; display: grid; grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center; gap: 4px; border: 0; border-radius: 0; background: transparent; text-align: left;
+}
+lua-workbench .symbol-kind { color: var(--accent-2); }
+lua-workbench .line-number { color: var(--muted); font-size: 11px; }
+
+lua-workbench .statusbar {
+  min-width: 0; display: flex; align-items: center; gap: 12px; overflow: hidden;
+  padding: 0 8px; background: #123d37; color: #d7fff1; font-size: 11px;
+}
+lua-workbench .statusbar button {
+  min-height: 22px; padding: 0 4px; border: 0; background: transparent; color: inherit; font-size: inherit;
+}
+lua-workbench .statusbar .right { margin-left: auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+lua-workbench .modal-backdrop {
+  position: absolute; inset: 0; z-index: 100; display: grid; place-items: center;
+  padding: 18px; background: rgba(3, 7, 12, .72); backdrop-filter: blur(2px);
+}
+lua-workbench .modal {
+  width: min(460px, 100%); max-height: 100%; overflow: auto;
+  border: 1px solid #38516d; border-radius: 10px; background: var(--surface-raised);
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+}
+lua-workbench .modal form { display: grid; gap: 12px; padding: 15px; }
+lua-workbench .modal header, lua-workbench .modal footer { display: flex; align-items: center; gap: 7px; }
+lua-workbench .modal h2 { margin: 0; font-size: 16px; font-weight: 600; }
+lua-workbench .modal header .icon-button { margin-left: auto; }
+lua-workbench .modal label { display: grid; gap: 5px; color: #b9c9dc; font-size: 12px; }
+lua-workbench .modal label input { background: #090f17; }
+lua-workbench .modal .check-row { display: flex; align-items: center; }
+lua-workbench .modal .check-row input { accent-color: var(--accent); }
+lua-workbench .form-error { color: #ff9ca6; font-size: 12px; }
+lua-workbench .settings-help { margin: 0; color: var(--muted); font-size: 12px; }
+lua-workbench .recording-status { min-height: 18px; margin: -5px 0 0; color: #9cc9ff; font-size: 12px; }
+lua-workbench .keybinding-modal { width: min(760px, 100%); }
+lua-workbench .keybinding-list {
+  max-height: min(58vh, 520px); overflow: auto; display: grid;
+  grid-template-columns: 1fr 1fr; gap: 7px 14px; padding-right: 4px;
+}
+lua-workbench .keybinding-row {
+  min-width: 0; display: grid; grid-template-columns: minmax(105px, 1fr) minmax(110px, 1fr) auto auto;
+  align-items: center; gap: 5px;
+}
+lua-workbench .keybinding-label { min-width: 0; overflow: hidden; color: #b9c9dc; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+lua-workbench .keybinding-record { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+lua-workbench .keybinding-record[aria-pressed="true"] { border-color: var(--accent); background: #102a25; color: #baffea; }
+lua-workbench .keybinding-record kbd { margin: 0; opacity: 1; font-size: 11px; }
+lua-workbench .recording-dot { display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: var(--danger); animation: lua-recording-pulse 1s ease-in-out infinite; }
+lua-workbench .unbound { color: var(--muted); font-size: 11px; }
+lua-workbench .keybinding-row-action { min-height: 27px; padding-inline: 7px; color: var(--muted); font-size: 11px; }
+
+@keyframes lua-recording-pulse { 50% { opacity: .35; } }
+
+.monaco-editor .glyph-breakpoint { position: relative; z-index: 3; background: radial-gradient(circle, #ff5f6e 0 42%, transparent 46%); }
+.monaco-editor .glyph-breakpoint-conditional {
+  background: radial-gradient(circle, #ff5f6e 0 30%, #f6c665 33% 46%, transparent 49%);
+}
+.monaco-editor .glyph-breakpoint-disabled {
+  background: radial-gradient(circle, transparent 0 27%, #718096 30% 42%, transparent 46%);
+}
+.monaco-editor .glyph-breakpoint-unverified {
+  background: radial-gradient(circle, transparent 0 25%, #ff7b86 28% 43%, transparent 47%);
+}
+.monaco-editor .glyph-logpoint { background: radial-gradient(circle, #f6c665 0 42%, transparent 46%); }
+/* Use Monaco's line-decoration lane, not the glyph margin: a paused-line
+   arrow must never replace or paint over the red breakpoint glyph. */
+.monaco-editor .current-instruction { position: relative; z-index: 1; background: #f6c665; clip-path: polygon(0 0, 68% 0, 100% 50%, 68% 100%, 0 100%); }
+.monaco-editor .current-line {
+  background: rgba(246,198,101,.09); border-block: 1px solid rgba(246,198,101,.25);
+}
+
+.license-page { overflow: auto; color: #dce6f4; background: #0b1018; font-family: system-ui, sans-serif; }
+.license-page main { max-width: 900px; margin: 0 auto; padding: 48px 24px; }
+.license-page pre { white-space: pre-wrap; background: #111925; padding: 20px; border: 1px solid #24364a; border-radius: 10px; }
+.license-page a { color: #7cb7ff; }
+
+@media (max-width: 900px) {
+  lua-workbench .main-area.with-sidebar { grid-template-columns: minmax(0, 1fr); }
+  lua-workbench .sidebar {
+    position: absolute; top: 0; right: 0; bottom: 0; width: min(340px, 88%);
+    box-shadow: -16px 0 36px rgba(0,0,0,.48);
+  }
+  lua-workbench .brand span { display: none; }
+  lua-workbench .commandbar > .spacer { display: none; }
+  lua-workbench .view-tools { margin-left: auto; }
+}
+
+@media (max-width: 620px) {
+  lua-workbench { min-height: 360px; }
+  lua-workbench .app-shell { grid-template-rows: 41px 38px minmax(0,1fr) 23px; }
+  lua-workbench .titlebar { gap: 5px; padding-inline: 6px; }
+  lua-workbench .titlebar select { max-width: 132px; }
+  lua-workbench .segmented { display: none; }
+  lua-workbench button { padding-inline: 8px; }
+  lua-workbench kbd { display: none; }
+  lua-workbench .center-pane { grid-template-rows: 32px minmax(150px, 1fr) minmax(105px, 31%); }
+  lua-workbench .problem-source { display: none; }
+  lua-workbench .search-controls { display: grid; grid-template-columns: 1fr auto; }
+  lua-workbench .search-controls input:first-child { grid-column: 1 / -1; }
+  lua-workbench .statusbar > span:not(.right) { display: none; }
+  lua-workbench .keybinding-list { grid-template-columns: 1fr; }
+  lua-workbench .keybinding-row { grid-template-columns: minmax(90px, 1fr) minmax(105px, 1fr) auto auto; }
+}

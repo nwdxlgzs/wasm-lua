@@ -1,0 +1,11 @@
+{
+  "extends": "./jsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "rootDir": "src",
+    "outDir": "build/package/editor/types"
+  },
+  "include": ["src/vite-env.d.ts", "src/ui/**/*.js", "src/language/**/*.js", "src/sdk/**/*.js"]
+}

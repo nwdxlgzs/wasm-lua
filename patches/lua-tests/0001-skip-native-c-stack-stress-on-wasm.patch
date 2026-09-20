@@ -1,0 +1,17 @@
+diff --git a/cstack.lua b/cstack.lua
+index 3dd69d9..530fe19 100644
+--- a/cstack.lua
++++ b/cstack.lua
+@@ -1,6 +1,12 @@
+ -- $Id: testes/cstack.lua $
+ -- See Copyright Notice in file lua.h
+ 
++if rawget(_G, "_WASM") then
++  (Message or print)
++      ('\n >>> WASM host: skipping native C-stack overflow stress tests <<<\n')
++  return
++end
++
+ 
+ local tracegc = require"tracegc"
+ 

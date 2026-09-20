@@ -1,0 +1,38 @@
+{
+  "name": "wasm-lua-commercial-kit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Lua 5.5.1 dual-backend browser SDK and embeddable debugger",
+  "exports": {
+    ".": {
+      "types": "./runtime/types/index.d.ts",
+      "import": "./runtime/wasm-lua.js"
+    },
+    "./runtime": {
+      "types": "./runtime/types/index.d.ts",
+      "import": "./runtime/wasm-lua.js"
+    },
+    "./editor": {
+      "types": "./editor/types/ui/index.d.ts",
+      "import": "./editor/wasm-lua-editor.js"
+    },
+    "./editor.css": "./editor/wasm-lua-editor.css",
+    "./sdk": {
+      "types": "./runtime/types/index.d.ts",
+      "import": "./runtime/wasm-lua.js"
+    },
+    "./ui": {
+      "types": "./editor/types/ui/index.d.ts",
+      "import": "./editor/wasm-lua-editor.js"
+    },
+    "./ui.css": "./editor/wasm-lua-editor.css"
+  },
+  "files": [
+    "runtime", "editor", "licenses", "README.md", "CAPABILITIES.md",
+    "SBOM.spdx.json", "THIRD_PARTY_NOTICES.txt", "release.json",
+    "integrity.json"
+  ],
+  "sideEffects": ["./editor/wasm-lua-editor.css"],
+  "engines": { "chrome": ">=152" }
+}

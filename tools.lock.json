@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "lua": {
+    "version": "5.5.1",
+    "archive": "lua-5.5.1.tar.gz",
+    "sha256": "1c4b4068d67061f2a2231ad2b5422e77acea1487ea9890f6320af614f4373dce",
+    "license": "MIT"
+  },
+  "luaTests": {
+    "version": "5.5.1",
+    "archive": "lua-5.5.1-tests.tar.gz",
+    "url": "https://www.lua.org/tests/lua-5.5.1-tests.tar.gz",
+    "sha256": "da07b543872dc0bb2ff12aabd0c248578d78df3eb6b67efdc537a46d455c7f31",
+    "license": "MIT"
+  },
+  "treeSitterLua": {
+    "version": "0.4.1",
+    "packageUrl": "https://registry.npmjs.org/@tree-sitter-grammars/tree-sitter-lua/-/tree-sitter-lua-0.4.1.tgz",
+    "packageSha512": "1306a015a53a66f795935f3f63ca948599248812a743b7520876e6fff4d4ae82d52b2de2d6b3981b2fdc347b529006f5783bd2d478422f26c7d92e78d42c9afe",
+    "grammarSha256": "33ff71b891a9de3e46877a63284fec2c7965139c7b2ba5e8562d2ca66e6d0f09",
+    "license": "MIT"
+  },
+  "emscripten": {
+    "version": "6.0.9",
+    "repository": "https://github.com/emscripten-core/emsdk.git",
+    "repositoryCommit": "5eb0bde7585670252e8ba05e9d361627bffd08b5",
+    "license": "MIT AND NCSA"
+  },
+  "wasiSdk": {
+    "version": "34.0",
+    "tag": "wasi-sdk-34",
+    "windowsX64": "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-34/wasi-sdk-34.0-x86_64-windows.tar.gz",
+    "sha256": "cccb5c323a9b34f0349a9b09e8804a0a7632c68c3310f4b5f437ed57d7e71d8f",
+    "licenseUrl": "https://raw.githubusercontent.com/WebAssembly/wasi-sdk/wasi-sdk-34/LICENSE",
+    "licenseSha256": "268872b9816f90fd8e85db5a28d33f8150ebb8dd016653fb39ef1f94f2686bc5",
+    "license": "Apache-2.0 WITH LLVM-exception"
+  },
+  "ninja": {
+    "version": "1.12.1",
+    "windowsX64": "https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-win.zip",
+    "sha256": "f550fec705b6d6ff58f2db3c374c2277a37691678d6aba463adcbb129108467a",
+    "licenseUrl": "https://raw.githubusercontent.com/ninja-build/ninja/v1.12.1/COPYING",
+    "licenseSha256": "eb7e9ab9690124c5c9f42bdc81383d886a3dede26345b6ed15bbad7caf81f7ea",
+    "license": "Apache-2.0"
+  },
+  "wasmtime": {
+    "version": "48.0.2",
+    "windowsX64": "https://github.com/bytecodealliance/wasmtime/releases/download/v48.0.2/wasmtime-v48.0.2-x86_64-windows.zip",
+    "sha256": "a2e7fadc4f54387c3b0ac371ab984113999f7ce824332eb67201526dfbff2bfe",
+    "licenseUrl": "https://raw.githubusercontent.com/bytecodealliance/wasmtime/v48.0.2/LICENSE",
+    "licenseSha256": "268872b9816f90fd8e85db5a28d33f8150ebb8dd016653fb39ef1f94f2686bc5",
+    "license": "Apache-2.0 WITH LLVM-exception"
+  }
+}

@@ -1,0 +1,126 @@
+From: wasm-lua commercial integration
+Subject: [PATCH] grammar: Lua 5.5.1 globals, numerals and UTF-8 names
+Upstream: @tree-sitter-grammars/tree-sitter-lua 0.4.1
+Upstream-grammar-SHA256: 33ff71b891a9de3e46877a63284fec2c7965139c7b2ba5e8562d2ca66e6d0f09
+
+The official Lua compiler is the final authority for invalid UTF-8 or syntax.
+Keep `global` contextual: it can still be an ordinary identifier in the
+default LUA_COMPAT_GLOBAL configuration.
+
+--- a/grammar.js
++++ b/grammar.js
+@@ -45,6 +45,7 @@ export default grammar({
+     $._block_string_start,
+     $._block_string_content,
+     $._block_string_end,
++    $._global_keyword,
+   ],
+ 
+   supertypes: ($) => [$.statement, $.expression, $.declaration, $.variable],
+@@ -218,7 +219,8 @@ export default grammar({
+           'local_declaration',
+           alias($._local_function_declaration, $.function_declaration)
+         ),
+-        field('local_declaration', $.variable_declaration)
++        field('local_declaration', $.variable_declaration),
++        $.global_declaration
+       ),
+     // function funcname funcbody
+     function_declaration: ($) =>
+@@ -253,6 +255,26 @@ export default grammar({
+         field('method', $.identifier)
+       ),
+ 
++    // Lua 5.5: `global` is contextual with LUA_COMPAT_GLOBAL enabled.
++    // A bare `global` remains a valid identifier in other statement forms.
++    global_declaration: ($) =>
++      seq(
++        $._global_keyword,
++        choice(
++          seq('function', field('name', $.identifier), $._function_body),
++          seq(
++            optional(field('attribute', alias($._global_attrib, $.attribute))),
++            choice(
++              '*',
++              seq(
++                alias($._global_att_name_list, $.variable_list),
++                optional(seq('=', alias($._variable_assignment_explist, $.expression_list)))
++              )
++            )
++          )
++        )
++      ),
++
+     // local namelist ['=' explist]
+     variable_declaration: ($) =>
+       seq(
+@@ -280,8 +302,17 @@ export default grammar({
+         ),
+         ','
+       ),
++    _global_att_name_list: ($) =>
++      list_seq(
++        seq(
++          field('name', $.identifier),
++          optional(field('attribute', alias($._global_attrib, $.attribute)))
++        ),
++        ','
++      ),
+     // attrib ::= [‘<’ Name ‘>’]
+-    _attrib: ($) => seq('<', $.identifier, '>'),
++    _attrib: (_) => seq('<', choice('const', 'close'), '>'),
++    _global_attrib: (_) => seq('<', 'const', '>'),
+ 
+     // explist ::= exp {',' exp}
+     _expression_list: ($) => list_seq($.expression, ','),
+@@ -319,8 +350,7 @@ export default grammar({
+     // Numeral
+     number: (_) => {
+       function number_literal(digits, exponent_marker, exponent_digits) {
+-        return choice(
+-          seq(digits, /U?LL/i),
++        return seq(
+           seq(
+             choice(
+               seq(optional(digits), optional('.'), digits),
+@@ -334,8 +364,7 @@ export default grammar({
+                 ),
+                 seq(optional(choice('-', '+')), exponent_digits)
+               )
+-            ),
+-            optional(choice('i', 'I'))
++            )
+           )
+         );
+       }
+@@ -353,16 +382,7 @@ export default grammar({
+         number_literal(hex_digits, 'p', decimal_digits)
+       );
+ 
+-      const bin_digits = /[01]+/;
+-      const bin_literal = seq(
+-        choice('0b', '0B'),
+-        choice(
+-          seq(bin_digits, /U?LL/i),
+-          seq(bin_digits, optional(choice('i', 'I')))
+-        )
+-      );
+-
+-      return token(choice(decimal_literal, hex_literal, bin_literal));
++      return token(choice(decimal_literal, hex_literal));
+     },
+ 
+     // LiteralString
+@@ -563,10 +583,8 @@ export default grammar({
+ 
+     // Name
+     identifier: (_) => {
+-      const identifier_start =
+-        /[^\p{Control}\s+\-*/%^#&~|<>=(){}\[\];:,.\\'"\d]/;
+-      const identifier_continue =
+-        /[^\p{Control}\s+\-*/%^#&~|<>=(){}\[\];:,.\\'"]*/;
++      const identifier_start = /[A-Za-z_\u0080-\u{10FFFF}]/u;
++      const identifier_continue = /[A-Za-z0-9_\u0080-\u{10FFFF}]*/u;
+       return token(seq(identifier_start, identifier_continue));
+     },
+ 

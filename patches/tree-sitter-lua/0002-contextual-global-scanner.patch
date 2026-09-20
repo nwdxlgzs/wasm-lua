@@ -1,0 +1,71 @@
+From: wasm-lua commercial integration
+Subject: [PATCH] scanner: distinguish Lua 5.5 contextual global from names
+Upstream: @tree-sitter-grammars/tree-sitter-lua 0.4.1
+Upstream-scanner-SHA256: 35bbd630b5a7421d46d2e91185eeea09bf78565d44cb676b63ca20d0f1b54bbd
+
+--- a/src/scanner.c
++++ b/src/scanner.c
+@@ -11,6 +11,7 @@ enum TokenType {
+   BLOCK_STRING_START,
+   BLOCK_STRING_CONTENT,
+   BLOCK_STRING_END,
++  GLOBAL_KEYWORD,
+ };
+ 
+ static inline void consume(TSLexer *lexer) { lexer->advance(lexer, false); }
+@@ -41,6 +42,45 @@ static inline void skip_whitespaces(TSLexer *lexer) {
+   }
+ }
+ 
++static inline bool global_name_start(int32_t c) {
++  return c == '_' || (c >= 'A' && c <= 'Z') ||
++    (c >= 'a' && c <= 'z') || c >= 0x80;
++}
++
++static inline bool global_name_continue(int32_t c) {
++  return global_name_start(c) || (c >= '0' && c <= '9');
++}
++
++/* Lua 5.5's LUA_COMPAT_GLOBAL recognizes the keyword only when followed by
++ * an attribute, '*', a name, or 'function'. Otherwise it stays a name. */
++static bool scan_global_keyword(TSLexer *lexer) {
++  static const char keyword[] = "global";
++  for (unsigned i = 0; keyword[i]; ++i) {
++    if (lexer->lookahead != keyword[i]) return false;
++    consume(lexer);
++  }
++  int32_t next = lexer->lookahead;
++  if (global_name_continue(next)) return false; /* globalName is one name */
++  lexer->mark_end(lexer);
++  while (iswspace(lexer->lookahead) || lexer->lookahead == '-') {
++    if (iswspace(lexer->lookahead)) {
++      skip(lexer);
++      continue;
++    }
++    /* A short comment may occur between `global` and its next token. */
++    consume(lexer);
++    if (lexer->lookahead != '-') return false;
++    consume(lexer);
++    while (lexer->lookahead && lexer->lookahead != '\n' &&
++           lexer->lookahead != '\r') skip(lexer);
++  }
++  next = lexer->lookahead;
++  if (next != '<' && next != '*' && !global_name_start(next))
++    return false;
++  lexer->result_symbol = GLOBAL_KEYWORD;
++  return true;
++}
++
+ typedef struct {
+   char ending_char;
+   uint8_t level_count;
+@@ -157,6 +197,9 @@ static bool scan_comment_content(Scanner *scanner, TSLexer *lexer) {
+ bool tree_sitter_lua_external_scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbols) {
+   Scanner *scanner = (Scanner *)payload;
+ 
++  if (valid_symbols[GLOBAL_KEYWORD] && lexer->lookahead == 'g' &&
++      scan_global_keyword(lexer)) return true;
++
+   if (valid_symbols[BLOCK_STRING_END] && scan_block_end(scanner, lexer)) {
+     reset_state(scanner);
+     lexer->result_symbol = BLOCK_STRING_END;
