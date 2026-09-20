@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="./assets/favicon-CLTcVTIV.svg" type="image/svg+xml">
+  <title>Lua release 外部组件嵌入验收</title>
+  <style>
+    :root { color-scheme: dark; font: 14px/1.45 system-ui, "Microsoft YaHei UI", sans-serif; background: #090d14; color: #dce6f4; }
+    * { box-sizing: border-box; }
+    body { margin: 0; height: 100vh; overflow: hidden; }
+    :where(.host-toolbar, .bottom, .pane, .dialog, .statusbar) :where(button, select, input) { min-height: 30px; border: 1px solid #2b4056; border-radius: 5px; color: inherit; background: #111b28; font: inherit; }
+    :where(.host-toolbar, .bottom, .pane, .dialog, .statusbar) button { padding: 0 10px; cursor: pointer; }
+    :where(.host-toolbar, .bottom, .pane, .dialog, .statusbar) button:disabled { opacity: .42; cursor: default; }
+    .host-toolbar button.primary { background: #42d29d; border-color: #42d29d; color: #04120d; font-weight: 700; }
+    [hidden] { display: none !important; }
+    #host-app { height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+    .host-toolbar { min-width: 0; display: flex; align-items: center; gap: 6px; padding: 7px 9px; border-bottom: 1px solid #23364a; overflow-x: auto; background: #101824; }
+    .host-toolbar strong { white-space: nowrap; margin-right: 6px; }
+    .spacer { flex: 1; }
+    [data-lua-zone] { display: contents; }
+    .workspace { min-height: 0; display: grid; grid-template-columns: 220px minmax(360px, 1fr) 300px; }
+    .pane { min-width: 0; min-height: 0; border-right: 1px solid #23364a; background: #0e1621; }
+    .pane:last-child { border: 0; border-left: 1px solid #23364a; }
+    .pane > h2 { height: 32px; margin: 0; padding: 7px 10px; color: #95a9c0; background: #121d2a; font-size: 11px; text-transform: uppercase; letter-spacing: .6px; }
+    .file-list { min-height: 0; overflow: auto; padding: 7px; }
+    .file-row, .debug-row { width: 100%; display: flex; justify-content: space-between; gap: 8px; padding: 7px 8px; border: 0; border-radius: 3px; background: transparent; text-align: left; }
+    .file-row.active, .debug-row.active { background: #183148; color: #73deb8; }
+    .editor-column { min-width: 0; min-height: 0; display: grid; grid-template-rows: minmax(240px, 1fr) 190px; }
+    [data-lua-editor] { min-width: 0; min-height: 0; position: relative; }
+    .bottom { min-height: 0; display: grid; grid-template-rows: 32px minmax(0, 1fr); border-top: 1px solid #23364a; background: #070b11; }
+    .bottom-tabs { display: flex; gap: 4px; padding: 2px 7px; background: #101824; }
+    .bottom-tabs button.active { color: #5ce1b3; border-color: #417965; }
+    .bottom-view { min-height: 0; overflow: auto; }
+    .console { min-height: 100%; display: grid; grid-template-rows: minmax(0, 1fr) auto; }
+    .console pre { margin: 0; padding: 9px 11px; overflow: auto; white-space: pre-wrap; font: 12px/1.55 Consolas, monospace; }
+    .console input { margin: 5px 8px 8px; padding: 4px 7px; }
+    [data-lua-component="debugPanel"] { display: block; height: calc(100% - 32px); overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+    .debug-section { border-bottom: 1px solid #23364a; }
+    .debug-heading { padding: 7px 9px; color: #95a9c0; background: #121d2a; font-size: 11px; font-weight: 700; }
+    .host-variable-row { display: grid; grid-template-columns: 20px minmax(70px, 1fr) minmax(50px, auto) 28px; gap: 5px; align-items: center; min-height: 29px; border-bottom: 1px solid #1d2d3e; }
+    .host-variable-row > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .host-variable-row .variable-value { color: #79d8b8; text-align: right; }
+    .host-variable-row button { min-height: 22px; padding: 0 4px; border: 0; background: transparent; }
+    .watch-box { width: calc(100% - 14px); margin: 7px; padding: 4px 7px; }
+    .statusbar { display: flex; gap: 12px; padding: 4px 9px; border-top: 1px solid #23364a; color: #9badc1; background: #0d1621; font-size: 12px; }
+    .dialog-backdrop { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; background: #0009; }
+    .dialog { width: min(620px, calc(100vw - 32px)); max-height: 80vh; overflow: auto; padding: 16px; border: 1px solid #35506a; border-radius: 8px; background: #111c29; box-shadow: 0 18px 60px #000a; }
+    .dialog h2 { margin-top: 0; }
+    .binding-row { display: grid; grid-template-columns: 1fr 150px 65px; gap: 8px; align-items: center; margin: 7px 0; }
+    .binding-row button.recording { border-color: #58dcad; color: #58dcad; }
+    .dialog footer { display: flex; justify-content: flex-end; gap: 7px; margin-top: 14px; }
+    .error { padding: 6px 9px; color: #ff99a4; }
+    @media (max-width: 900px) { .workspace { grid-template-columns: minmax(0, 1fr); } .pane { display: none; } }
+  </style>
+  <script type="module" crossorigin src="./assets/embedded-zxJyOBzV.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/modulepreload-polyfill-B5Qt9EMX.js">
+</head>
+<body>
+  <section id="host-app">
+    <header class="host-toolbar" aria-label="宿主外部工具栏">
+      <strong>宿主布局 · 调试版（-debug.wasm）</strong>
+      <button class="primary" data-lua-command="run" data-lua-enabled="idle">运行</button>
+      <button data-lua-command="continue" data-lua-visible="paused">继续</button>
+      <button data-lua-command="stepOver" data-lua-visible="paused">步过</button>
+      <button data-lua-command="stepIn" data-lua-visible="paused">步入</button>
+      <button data-lua-command="stepOut" data-lua-visible="paused">步出</button>
+      <button data-lua-command="pause" data-lua-visible="executing">暂停</button>
+      <button data-lua-command="stop" data-lua-enabled="active">停止</button>
+      <button data-lua-command="find">查找</button>
+      <button data-lua-command="replace">替换</button>
+      <button data-lua-command="commandPalette">命令面板</button>
+      <button id="add-breakpoint">当前行断点 <kbd>F9</kbd></button>
+      <button id="keybindings">按键设置</button>
+      <span data-lua-zone="toolbar"></span>
+      <span class="spacer"></span>
+      <select data-lua-option="backend" aria-label="后端"><option value="emscripten">Emscripten</option><option value="wasi">WASI</option></select>
+      <select data-lua-option="profile" aria-label="安全档"><option value="safe">安全档</option><option value="trusted">可信档</option><option value="full-access">完全访问</option></select>
+      <button data-lua-command="pickHostDirectory" data-lua-visible="host-access">打开文件夹</button>
+    </header>
+    <main class="workspace">
+      <aside class="pane"><h2>宿主文件面板</h2><div id="files" class="file-list"></div><span data-lua-zone="sidebar"></span></aside>
+      <section class="editor-column">
+        <div data-lua-editor aria-label="嵌入式 Lua 编辑器"></div>
+        <section class="bottom">
+          <div class="bottom-tabs"><button class="active" data-panel="console">调试控制台</button><button data-panel="problems">问题 <span data-lua-bind="problemCount">0</span></button><button data-lua-command="clearOutput">清空</button></div>
+          <div class="bottom-view"><section data-lua-component="debugConsole"></section><section id="problems" hidden></section><span data-lua-zone="bottom"></span></div>
+        </section>
+      </section>
+      <aside class="pane"><h2>宿主调试面板 · 单击装订线下断点</h2><section data-lua-component="debugPanel"></section></aside>
+    </main>
+    <footer class="statusbar"><span data-lua-bind="status">正在载入</span><span data-lua-bind="activeFile"></span><span class="spacer"></span><span id="host-events">等待事件</span><span data-lua-zone="statusbar"></span></footer>
+    <section data-lua-component="keybindingSettings"></section>
+    <div id="breakpoint-dialog" class="dialog-backdrop" hidden>
+      <form class="dialog" aria-labelledby="breakpoint-title">
+        <h2 id="breakpoint-title">断点设置</h2>
+        <label><input name="enabled" type="checkbox" checked> 启用</label>
+        <label>条件<input name="condition" placeholder="例如：i == 5"></label>
+        <label>命中条件<input name="hitCondition" placeholder="N、>=N 或 %N"></label>
+        <label>日志消息<input name="logMessage" placeholder="填写后成为日志点"></label>
+        <div class="error" role="alert"></div>
+        <footer><button type="button" data-action="remove">删除</button><span class="spacer"></span><button type="button" data-action="cancel">取消</button><button type="submit">保存</button></footer>
+      </form>
+    </div>
+    <div id="variable-dialog" class="dialog-backdrop" hidden>
+      <form class="dialog" aria-labelledby="variable-title">
+        <h2 id="variable-title">修改变量</h2>
+        <label>Lua 表达式<input name="value" required></label>
+        <div class="error" role="alert"></div>
+        <footer><button type="button" data-action="cancel">取消</button><button type="submit">应用</button></footer>
+      </form>
+    </div>
+  </section>
+</body>
+</html>

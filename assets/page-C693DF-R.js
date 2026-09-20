@@ -1,0 +1,1 @@
+const t=new URL("./release/",document.baseURI),e=document.createElement("link");e.rel="stylesheet";e.href=new URL("editor/wasm-lua-editor.css",t).href;document.head.append(e);const r=new URL("editor/wasm-lua-editor.js",t).href,{registerLuaWorkbenchElement:o}=await import(r);o();

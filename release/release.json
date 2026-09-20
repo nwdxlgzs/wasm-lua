@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "luaVersion": "5.5.1",
+  "architecture": "runtime-editor-site",
+  "runtime": "runtime/wasm-lua.js",
+  "editor": "editor/wasm-lua-editor.js",
+  "variants": [
+    "emscripten-runtime",
+    "emscripten-debug",
+    "wasi-runtime",
+    "wasi-debug"
+  ],
+  "artifacts": {
+    "emscripten-runtime": [
+      "emscripten-lua-runtime.mjs",
+      "emscripten-lua-runtime.wasm"
+    ],
+    "emscripten-debug": [
+      "emscripten-lua-debug.mjs",
+      "emscripten-lua-debug.wasm"
+    ],
+    "wasi-runtime": [
+      "wasi-lua-runtime.wasm"
+    ],
+    "wasi-debug": [
+      "wasi-lua-debug.wasm"
+    ]
+  }
+}

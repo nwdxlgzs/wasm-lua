@@ -1,0 +1,1 @@
+import"./modulepreload-polyfill-B5Qt9EMX.js";const t=await fetch("./release/THIRD_PARTY_NOTICES.txt");document.querySelector("#notices").textContent=t.ok?await t.text():"许可证清单尚未生成，请运行 pnpm compliance。";

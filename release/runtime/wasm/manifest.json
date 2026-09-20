@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "luaVersion": "5.5.1",
+  "luaSourceSha256": "1c4b4068d67061f2a2231ad2b5422e77acea1487ea9890f6320af614f4373dce",
+  "abiVersion": "1.0",
+  "abiValue": 65536,
+  "debugProtocol": "DAP 1.68",
+  "backends": [
+    "emscripten",
+    "wasi-preview1"
+  ],
+  "flavors": [
+    "runtime",
+    "debug"
+  ],
+  "artifacts": {
+    "emscripten-lua-runtime.mjs": {
+      "bytes": 12199,
+      "sha256": "62cc62bf37acb5529d06c4c4da57fbc44d3bb6bc5167c8fdb314c9234f174da6"
+    },
+    "emscripten-lua-runtime.wasm": {
+      "bytes": 297955,
+      "sha256": "580cd8cc89ca41578faa90fde9f5b59894e6d55edb0e73c582a4e8e777da6e1d"
+    },
+    "emscripten-lua-debug.mjs": {
+      "bytes": 12195,
+      "sha256": "f1cff9dd93162dae1ee7dab225a0920b783b5d8ca8e7f05dd26ed4fd54936b72"
+    },
+    "emscripten-lua-debug.wasm": {
+      "bytes": 298498,
+      "sha256": "0527a85ef30fa1db146f552eb57d0f00ca5f3e15971976b4f21a0557445b14da"
+    },
+    "wasi-lua-runtime.wasm": {
+      "bytes": 337106,
+      "sha256": "c8c98fd4b448721da4ce31fb48bcbb321042e2f0cb825d638f6b920ee2e5de80"
+    },
+    "wasi-lua-debug.wasm": {
+      "bytes": 337703,
+      "sha256": "127dae4c07334205bdb578472eb80338705500305731336d6c7f4e951bff9868"
+    }
+  },
+  "releaseVariants": [
+    "emscripten-runtime",
+    "emscripten-debug",
+    "wasi-runtime",
+    "wasi-debug"
+  ]
+}
