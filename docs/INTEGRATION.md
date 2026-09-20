@@ -125,7 +125,7 @@ dist/release/（根 release 的逐字节副本） + dist/*.html（薄适配页�
 架构、所有文件的 SHA-256 和 dist/release 的逐字节相等。
 
 安全边界是 Worker + 资源配额 + 显式能力白名单，不是“目录隔离”；网页交付
-的 WASM/JS 可被读取，宿主不得把 trusted 档或敏感能力暴露给不可信代码。
+的 WASM/JS 可被读取，宿主不得把 trusted/full-access 或敏感能力暴露给不可信代码。
 
 ## 2. 后端怎么选
 
@@ -137,7 +137,8 @@ dist/release/（根 release 的逐字节副本） + dist/*.html（薄适配页�
 - 工作台切换后端或安全档会安全重建 Worker/VM，并保留编辑器源码、工作区与
   断点；当前 Lua 栈、协程和 `LuaRef` 不会迁移。
 - 两个后端都不直接获得浏览器网络、宿主文件系统或进程权限。宿主访问需显式
-  注册能力；可信档也可在用户授权 File System Access 目录句柄后挂载该目录。
+  注册能力；可信档和 full-access 也可在用户授权 File System Access 目录句柄后
+  挂载该目录。
 
 业务代码不要按后端分支；应在 CI 中对同一源码和输入做双后端差分测试。
 
@@ -177,11 +178,11 @@ try {
 | 选项 | 类型与默认值 | 说明 |
 | --- | --- | --- |
 | `backend` | `'emscripten'` | 也可为 `'wasi'` |
-| `profile` | `'safe'` | 也可为 `'trusted'` |
+| `profile` | `'safe'` | 也可为 `'trusted'` 或 `'full-access'` |
 | `assetBaseUrl` | 相对运行时入口的 `wasm/` | 可覆盖唯一的运行时 WASM 公开目录，建议以 `/` 结尾 |
-| `timeout` | safe `5000`、trusted `60000` | 单次活动执行的墙钟上限，毫秒 |
-| `memoryLimit` | safe 64 MiB、trusted 256 MiB | Lua allocator 堆配额，字节；最大 512 MiB |
-| `instructionLimit` | safe 1000 万、trusted 1 亿 | VM 指令配额 |
+| `timeout` | safe `5000`、trusted `60000`、full-access `0` | 单次活动执行的墙钟上限，毫秒；`0` 表示不限制 |
+| `memoryLimit` | safe 64 MiB、trusted 256 MiB、full-access 无人工配额 | Lua allocator 堆配额，字节；实际 WASM 内存最大 512 MiB |
+| `instructionLimit` | safe 1000 万、trusted 1 亿、full-access 无 | VM 指令配额 |
 | `environment` | `{}` | `os.getenv` 唯一可见的字符串键值映射 |
 
 `debug` 是内部选择项；业务代码应使用 `createLuaRuntime()` 或
@@ -316,7 +317,8 @@ const paths = lua.listFiles('/logs');
 路径统一使用 `/`，不允许空路径、反斜线、NUL、`.` 或 `..` 段。默认情况下
 VFS 只在实例内存中；`os.remove/os.rename` 操作同一实例的文件（挂载点内的
 `os.remove` 也可删除授权的真实文件；不支持跨挂载重命名）。默认总字节配额：
-安全档 16 MiB、可信档 64 MiB；创建时可通过 `vfsLimit` 自定义，最大 512 MiB。
+安全档 16 MiB、可信档 64 MiB，full-access 不设人工配额；创建时可通过
+`vfsLimit` 自定义受限档配额，最大 512 MiB。
 内存文件在顶层 `run()` 之间保留，但不会自动持久化到磁盘、IndexedDB 或跨
 Runtime 实例共享；宿主若需要持久化，可显式读取字节并自行存储，或使用下述
 用户授权的文件夹挂载。
@@ -328,11 +330,12 @@ Runtime 实例共享；宿主若需要持久化，可显式读取字节并自行
 锁、目录、权限或 POSIX 文件语义。二进制 Lua 字符串经 ABI 返回 JS 时：合法
 UTF-8 映射 `string`，非 UTF-8 映射 `Uint8Array`；`readFile()` 默认始终返回
 `Uint8Array`，`encoding: 'utf8'` 对非法 UTF-8 明确报错。存放字节码不意味着允许
-执行：两档都支持通过 VFS 的 `loadfile/dofile` 与文本 `load`；安全档拒绝
-二进制 chunk，可信档可用 `load` 或 `loadfile` 执行 Lua 字节码。字节码不适合
-不可信输入，可信档的源码与挂载文件均必须可信。原生动态库仍禁止。
+执行：三档都支持通过 VFS 的 `loadfile/dofile` 与文本 `load`；安全档拒绝
+二进制 chunk，可信档和 full-access 可用 `load` 或 `loadfile` 执行 Lua 字节码。
+字节码不适合不可信输入，可信档及 full-access 的源码与挂载文件均必须可信。
+原生动态库仍禁止。
 
-### 可信档挂载浏览器授权的文件夹
+### 可信档/full-access 挂载浏览器授权的文件夹
 
 ```js
 // 只能在用户点击事件里调用；Chromium 安全上下文（HTTPS/localhost）。
@@ -362,7 +365,7 @@ release();
 能够访问它，`..`、反斜线和重叠挂载被拒绝。实例重新创建后要重新挂载句柄；
 浏览器可撤销权限。同步 `readFile/writeFile/removeFile` 只操作内存文件，挂载
 文件应使用其 `Async` 对应 API。`io.open('w')` 会截断目标文件，`os.remove`
-会删除目标文件：可信档执行前请确认所选目录和源码，挂载文件修改会持久化，
+会删除目标文件：可信档/full-access 执行前请确认所选目录和源码，挂载文件修改会持久化，
 无法通过 `dispose()` 回滚。安全档不能挂载，也不能通过 VFS 间接接触宿主文件。
 不授予进程、网络或原生动态库权限。这里使用浏览器文件句柄而不是 WASM 的
 宿主文件描述符；Emscripten 与 WASI 后端行为相同。
@@ -386,7 +389,7 @@ const removeDefinition = lua.registerDefinition({
 
 ## 6. 浏览器中的 os 兼容层
 
-两个安全档都提供无宿主权限的安全子集：
+三个 profile 都提供无宿主权限的 `os` 子集：
 
 - `os.clock()`：当前顶层执行累计的活动 CPU/调度时间；断点暂停和等待 Promise
   的时间不计入；
@@ -398,8 +401,8 @@ const removeDefinition = lua.registerDefinition({
 - `os.setlocale()`：只接受确定性的 `C` locale。
 
 `os.execute()` 与 `os.exit()` 明确报错；进程、真实环境变量、网络和动态库
-不可用。`io/loadfile/dofile` 默认只使用实例内存 VFS；可信档显式目录挂载后
-也可访问挂载点。网络应封装为带鉴权和取消的注册能力。
+不可用。`io/loadfile/dofile` 默认只使用实例内存 VFS；可信档/full-access 显式
+目录挂载后也可访问挂载点。网络应封装为带鉴权和取消的注册能力。
 
 ## 7. 源码调试 API
 
@@ -664,7 +667,7 @@ await workbench.ready;
 | `data-lua-option="backend|profile"` | select 改变运行选项 |
 | `data-lua-bind="status|output|activeFile|problemCount"` | 单向呈现状态 |
 | `data-lua-enabled="executing|active|paused|idle|debugger"` | 按状态启禁控件；`executing` 不含暂停，`active` 包含暂停 |
-| `data-lua-visible="executing|active|paused|idle|debugger|playground|safe|trusted"` | 按运行、安全档或模式显示控件 |
+| `data-lua-visible="executing|active|paused|idle|debugger|playground|safe|trusted|full-access|host-access"` | 按运行、安全档或模式显示；`host-access` 匹配 trusted/full-access |
 | `data-lua-component="debugPanel|debugConsole|…"` | 在宿主指定位置挂载插件替换组件；无插件时保留原 DOM |
 | `data-lua-zone="toolbar|sidebar|bottom|statusbar"` | 按顺序挂载插件 contribution，不删除宿主原有 DOM |
 
@@ -744,23 +747,25 @@ Lua 折叠器按词法 token 扫描，不依赖缩进或“行首 function”正
 NLS、Lua 5.5.1 诊断、语义高亮、补全、签名、悬停、定义/引用、局部重命名、
 符号、代码操作和保守格式化。只读定义参与这些能力，但不会被重命名修改。
 
-## 12. 安全档与可信档
+## 12. 安全档、可信档与 full-access
 
-| 项目 | safe（默认） | trusted |
-| --- | --- | --- |
-| Lua 堆 | 64 MiB | 256 MiB |
-| 指令 | 1000 万 | 1 亿 |
-| 活动执行超时 | 5 秒 | 60 秒 |
-| `print` 输出 | 1 MiB | 16 MiB |
-| `debug` 库 | 无 | 有，hook 与资源控制复合 |
-| 安全 `os` 子集 | 有 | 有 |
-| 内存 VFS/注册模块 | 显式注册后可用 | 显式注册后可用 |
+| 项目 | safe（默认） | trusted | full-access |
+| --- | --- | --- | --- |
+| Lua 堆 | 64 MiB | 256 MiB | 无人工配额；WASM 物理上限 512 MiB |
+| 指令 | 1000 万 | 1 亿 | 无配额 |
+| 活动执行超时 | 5 秒 | 60 秒 | 无超时 |
+| `print` 输出 | 1 MiB | 16 MiB | 无人工配额 |
+| `debug` 库 | 无 | 有，复合 hook | 有，复合 hook |
+| 安全 `os` 子集 | 有 | 有 | 有 |
+| 内存 VFS/注册模块 | 16 MiB | 64 MiB | 无人工配额 |
+| 授权宿主目录 | 无 | 有 | 有 |
 
-两档都有实例内存 VFS 的 `io`、文本 `load/loadfile/dofile`；安全档禁止二进制
-chunk 与宿主文件夹挂载。可信档允许 Lua 字节码和用户明确授权的目录句柄挂载；
-所选目录内的读写/删除是真实且持久的。两档均禁止进程、原生动态库、隐式网络
-与未注册能力。trusted 只适合已信任源码，不能把挂载句柄交给不可信页面脚本。
-配额可通过 SDK 选项收紧；不要仅依赖前端 UI 隐藏安全选项。
+三档都有实例内存 VFS 的 `io`、文本 `load/loadfile/dofile`；安全档禁止二进制
+chunk 与宿主文件夹挂载。可信档和 full-access 允许 Lua 字节码及用户明确授权的
+目录句柄挂载，所选目录内的读写/删除真实且持久。浏览器/WASM 三档均不提供进程、
+原生动态库、隐式网络、未注册 JS 能力或未授权文件系统。full-access 的“不限制”
+只指不设置应用层资源配额，并不绕过浏览器沙箱、WASM 512 MiB 构建上限或设备实际
+资源；只适合完全可信源码，无限循环必须由宿主 `interrupt()` 或停止按钮终止。
 
 ## 13. HTTP、CSP、缓存与子路径部署
 

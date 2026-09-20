@@ -12,7 +12,7 @@ import { COMMAND_LABELS, parseKeybinding, resolveKeybindings } from './keybindin
 /**
  * @typedef {'playground'|'debugger'} WorkbenchMode
  * @typedef {'emscripten'|'wasi'} WorkbenchBackend
- * @typedef {'safe'|'trusted'} WorkbenchProfile
+ * @typedef {'safe'|'trusted'|'full-access'} WorkbenchProfile
  * @typedef {{uri: string, source: string}} WorkbenchDefinition
  * @typedef {void|(()=>void)|{dispose(): void}} WorkbenchDisposable
  * @typedef {'titlebar'|'toolbar'|'fileTabs'|'debugPanel'|'filesPanel'|'outlinePanel'|'debugConsole'|'problemsPanel'|'searchPanel'|'breakpointDialog'|'fileDialog'|'keybindingSettings'|'statusbar'} WorkbenchComponentId
@@ -188,7 +188,8 @@ export class LuaWorkbenchController extends EventTarget {
     this.backend = options.backend === 'wasi' ? 'wasi' : 'emscripten';
     this.availableBackends = options.backends?.length
       ? [...new Set(options.backends)] : ['emscripten', 'wasi'];
-    this.profile = options.profile === 'trusted' ? 'trusted' : 'safe';
+    this.profile = options.profile === 'trusted' || options.profile === 'full-access'
+      ? options.profile : 'safe';
     /** @type {{handle: FileSystemDirectoryHandle, mountPoint: string}|null} */
     this.hostDirectory = null;
     this.assetBaseUrl = options.assetBaseUrl ??
@@ -259,7 +260,7 @@ export class LuaWorkbenchController extends EventTarget {
   snapshot() {
     return {
       mode: this.mode, backend: this.backend, profile: this.profile,
-      hostDirectory: this.profile === 'trusted'
+      hostDirectory: this.profile !== 'safe'
         ? this.hostDirectory?.handle.name ?? null : null,
       availableBackends: [...this.availableBackends],
       running: this.running, paused: this.paused, output: this.output,
@@ -601,12 +602,13 @@ export class LuaWorkbenchController extends EventTarget {
     const factory = this.mode === 'debugger' ? createLuaDebugger : createLuaRuntime;
     this.runtime = factory({
       backend: /** @type {'emscripten'|'wasi'} */ (this.backend),
-      profile: /** @type {'safe'|'trusted'} */ (this.profile),
-      timeout: this.profile === 'safe' ? 5000 : 60000,
+      profile: /** @type {WorkbenchProfile} */ (this.profile),
+      timeout: this.profile === 'full-access' ? 0
+        : this.profile === 'safe' ? 5000 : 60000,
       assetBaseUrl: this.assetBaseUrl,
       environment: this.options.environment
     });
-    if (this.profile === 'trusted' && this.hostDirectory)
+    if (this.profile !== 'safe' && this.hostDirectory)
       await this.runtime.mountDirectory(this.hostDirectory.handle, {
         mountPoint: this.hostDirectory.mountPoint
       });
@@ -737,7 +739,7 @@ export class LuaWorkbenchController extends EventTarget {
     if (name === 'backend' && !this.availableBackends.includes(value))
       throw new Error(`当前 release 未包含 ${value} 的 ` +
         `${this.mode === 'debugger' ? 'debug' : 'runtime'} 产物。`);
-    if (name === 'profile' && !['safe', 'trusted'].includes(value))
+    if (name === 'profile' && !['safe', 'trusted', 'full-access'].includes(value))
       throw new TypeError('未知安全档：' + value);
     this[name] = value;
     this.status = '正在切换运行时';
@@ -748,10 +750,10 @@ export class LuaWorkbenchController extends EventTarget {
   }
 
   /** Browser picker must be reached from a direct user click. The handle is
-   * replayed after backend switches only while the trusted profile is active. */
+   * replayed after backend switches only while a host-access profile is active. */
   async pickHostDirectory() {
-    if (this.profile !== 'trusted')
-      throw new Error('请先切换至可信档再选择宿主文件夹。');
+    if (this.profile === 'safe')
+      throw new Error('请先切换至可信档或 full-access 再选择宿主文件夹。');
     if (this.hostDirectory) {
       this.hostDirectory = null;
       await this.createRuntime();

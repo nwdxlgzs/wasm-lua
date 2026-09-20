@@ -73,8 +73,8 @@
       <span data-lua-zone="toolbar"></span>
       <span class="spacer"></span>
       <select data-lua-option="backend" aria-label="后端"><option value="emscripten">Emscripten</option><option value="wasi">WASI</option></select>
-      <select data-lua-option="profile" aria-label="安全档"><option value="safe">安全档</option><option value="trusted">可信档</option></select>
-      <button data-lua-command="pickHostDirectory" data-lua-visible="trusted">打开文件夹</button>
+      <select data-lua-option="profile" aria-label="安全档"><option value="safe">安全档</option><option value="trusted">可信档</option><option value="full-access">完全访问</option></select>
+      <button data-lua-command="pickHostDirectory" data-lua-visible="host-access">打开文件夹</button>
     </header>
     <main class="workspace">
       <aside class="pane"><h2>宿主文件面板</h2><div id="files" class="file-list"></div><span data-lua-zone="sidebar"></span></aside>

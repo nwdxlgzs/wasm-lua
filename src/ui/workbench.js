@@ -99,9 +99,11 @@ export class LuaWorkbench extends LitElement {
         backend: /** @type {'emscripten'|'wasi'} */ (
           supplied.backend === 'wasi' || this.getAttribute('backend') === 'wasi'
             ? 'wasi' : 'emscripten'),
-        profile: /** @type {'safe'|'trusted'} */ (
-          supplied.profile === 'trusted' || this.getAttribute('profile') === 'trusted'
-            ? 'trusted' : 'safe'),
+        profile: /** @type {'safe'|'trusted'|'full-access'} */ ((() => {
+          const profile = supplied.profile ?? this.getAttribute('profile');
+          return profile === 'trusted' || profile === 'full-access'
+            ? profile : 'safe';
+        })()),
         assetBaseUrl: supplied.assetBaseUrl ??
           this.getAttribute('asset-base-url') ?? undefined,
         storageKey: supplied.storageKey ??
@@ -851,8 +853,9 @@ export class LuaWorkbench extends LitElement {
           <select name="profile" aria-label="安全配置" .value=${state.profile}
             @change=${this.switchRuntime}>
             <option value="safe">安全档</option><option value="trusted">可信档</option>
+            <option value="full-access">完全访问</option>
           </select>
-          ${state.profile === 'trusted' ? html`
+          ${state.profile !== 'safe' ? html`
             <button aria-label=${state.hostDirectory ? '卸载宿主文件夹' : '打开宿主文件夹'}
               title=${state.hostDirectory ? `已挂载 /host · ${state.hostDirectory}` :
                 '选择浏览器授权的宿主文件夹，映射为 /host'}
@@ -923,7 +926,8 @@ export class LuaWorkbench extends LitElement {
           <span>${state.status}</span>
           <span>${state.cursor ? `${state.cursor.lineNumber}:${state.cursor.column}` : ''}</span>
           <span class="right">${state.activeFile} · ${state.backend.toUpperCase()} ·
-            ${state.profile === 'safe' ? '安全档' : '可信档'} · Lua 5.5.1 ·
+            ${state.profile === 'safe' ? '安全档' :
+              state.profile === 'trusted' ? '可信档' : '完全访问'} · Lua 5.5.1 ·
             <a href=${this.licenseUrl}>许可证</a></span>
           ${this.pluginZone('statusbar')}
         </footer>`)}

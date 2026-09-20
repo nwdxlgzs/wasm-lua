@@ -23,7 +23,7 @@ const DEFAULTS = {
 
 /**
  * @typedef {'emscripten'|'wasi'} LuaBackend
- * @typedef {'safe'|'trusted'} LuaProfile
+ * @typedef {'safe'|'trusted'|'full-access'} LuaProfile
  * @typedef {{backend?: LuaBackend, profile?: LuaProfile, debug?: boolean,
  *   timeout?: number, memoryLimit?: number, instructionLimit?: number,
  *   vfsLimit?: number, assetBaseUrl?: string,
@@ -43,16 +43,24 @@ export class LuaRuntime extends EventTarget {
   /** @param {LuaRuntimeOptions} [options] */
   constructor(options = {}) {
     super();
+    const profile = options.profile === 'trusted' || options.profile === 'full-access'
+      ? options.profile : 'safe';
     this.options = {
       ...DEFAULTS,
       ...options,
-      timeout: options.timeout ?? (options.profile === 'trusted' ? 60000 : 5000),
+      profile,
+      timeout: options.timeout ??
+        (profile === 'full-access' ? 0 : profile === 'trusted' ? 60000 : 5000),
       vfsLimit: options.vfsLimit ??
-        (options.profile === 'trusted' ? 64 : 16) * 1024 * 1024
+        (profile === 'full-access' ? Infinity
+          : (profile === 'trusted' ? 64 : 16) * 1024 * 1024)
     };
-    if (!Number.isSafeInteger(this.options.vfsLimit) || this.options.vfsLimit < 0 ||
-        this.options.vfsLimit > 512 * 1024 * 1024)
+    if ((this.options.vfsLimit !== Infinity || profile !== 'full-access') &&
+        (!Number.isSafeInteger(this.options.vfsLimit) || this.options.vfsLimit < 0 ||
+          this.options.vfsLimit > 512 * 1024 * 1024))
       throw new RangeError('VFS 配额必须是 0 到 512 MiB 的安全整数。');
+    if (!Number.isFinite(this.options.timeout) || this.options.timeout < 0)
+      throw new RangeError('活动执行超时必须是非负有限毫秒数；0 表示不限制。');
     this.#osBridge = createOsBridge({
       environment: this.options.environment,
       clock: () => this.#executionClockSeconds()
@@ -299,6 +307,7 @@ export class LuaRuntime extends EventTarget {
     const pending = this.#pending.get(id);
     if (!pending) return;
     clearTimeout(pending.timer);
+    if (this.options.timeout === 0) return;
     pending.timer = setTimeout(() => {
       if (!pending) return;
       pending.reject(new Error('Lua 执行已超过活动时间限制，Worker 已重建。'));
@@ -507,8 +516,8 @@ export class LuaRuntime extends EventTarget {
    * @param {FileSystemDirectoryHandle} handle
    * @param {{mountPoint?: string, mode?: 'read'|'readwrite'}} [options] */
   async mountDirectory(handle, options = {}) {
-    if (this.options.profile !== 'trusted')
-      throw new Error('宿主文件夹挂载仅限可信档。');
+    if (this.options.profile === 'safe')
+      throw new Error('宿主文件夹挂载仅限可信档或 full-access。');
     if (!handle || handle.kind !== 'directory' ||
         typeof handle.getFileHandle !== 'function')
       throw new TypeError('必须传入浏览器授权的 FileSystemDirectoryHandle。');
@@ -544,8 +553,8 @@ export class LuaRuntime extends EventTarget {
   /** Must be called directly from a user gesture in Chromium on HTTPS/localhost.
    * @param {{mountPoint?: string, mode?: 'read'|'readwrite'}} [options] */
   async pickDirectory(options = {}) {
-    if (this.options.profile !== 'trusted')
-      throw new Error('宿主文件夹选择仅限可信档。');
+    if (this.options.profile === 'safe')
+      throw new Error('宿主文件夹选择仅限可信档或 full-access。');
     if (typeof globalThis.showDirectoryPicker !== 'function')
       throw new Error('浏览器不支持文件夹选择；请使用 Chromium 的安全上下文。');
     const mode = options.mode ?? 'readwrite';

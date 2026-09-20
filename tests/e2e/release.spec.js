@@ -194,3 +194,34 @@ test('可信档显式目录挂载：读写、只读、路径隔离和权限撤�
     expect(result.permission).toContain('未授权');
   }
 });
+
+for (const backend of ['emscripten', 'wasi']) {
+  test(`${backend} full-access 默认取消人工配额并开放完整现有能力`,
+    async ({ page }) => {
+      await page.goto('/blank.html');
+      const result = await page.evaluate(async backend => {
+        const { createLuaRuntime } = await import('/release/runtime/wasm-lua.js');
+        const runtime = createLuaRuntime({ backend, profile: 'full-access' });
+        const options = {
+          profile: runtime.options.profile,
+          timeout: runtime.options.timeout,
+          vfsUnlimited: runtime.options.vfsLimit === Infinity
+        };
+        const values = (await runtime.run(`
+          local binary = assert(load(string.dump(function() return 42 end, true)))
+          return type(debug), binary()
+        `)).values;
+        const unmount = await runtime.mountDirectory({
+          kind: 'directory', name: 'full-access',
+          async getFileHandle() { throw new Error('not used'); }
+        }, { mountPoint: '/host' });
+        unmount();
+        runtime.dispose();
+        return { options, values };
+      }, backend);
+      expect(result.options).toEqual({
+        profile: 'full-access', timeout: 0, vfsUnlimited: true
+      });
+      expect(result.values).toEqual(['table', 42n]);
+    });
+}

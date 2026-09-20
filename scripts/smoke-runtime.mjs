@@ -181,6 +181,21 @@ for (const [name, host, hostHeap] of [
   if (nestedBudget.state !== -1 ||
       !nestedBudget.result.error?.includes('instruction budget'))
     throw new Error(`${name} debug.sethook bypassed nested-coroutine limits: ${JSON.stringify(nestedBudget)}`);
+  const fullAccess = executeSource(host, hostHeap, `
+    local count = 0
+    for i = 1, 5000000 do count = count + 1 end
+    local binary = assert(load(string.dump(function() return 42 end, true)))
+    return count, binary(), type(debug)
+  `, { profile: 2, heapLimit: 0, instructionLimit: 0 });
+  if (fullAccess.state !== 0 || fullAccess.result[0]?.bigint !== '5000000' ||
+      fullAccess.result[1]?.bigint !== '42' || fullAccess.result[2] !== 'table')
+    throw new Error(`${name} full-access did not remove VM quotas or expose trusted libraries: ${JSON.stringify(fullAccess)}`);
+  const unlimitedOutput = executeSource(host, hostHeap,
+    'print(string.rep("x", 16 * 1024 * 1024 + 1)); return true',
+    { profile: 2, heapLimit: 0, instructionLimit: 0 });
+  if (unlimitedOutput.state !== 0 || unlimitedOutput.result[0] !== true ||
+      unlimitedOutput.output.length <= 16 * 1024 * 1024)
+    throw new Error(`${name} full-access retained the trusted output quota.`);
 }
 
 const wasmtime = path.join(root, '.tools', 'wasmtime-48.0.2',

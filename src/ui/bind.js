@@ -31,7 +31,9 @@ function stateRule(state, rule) {
   if (rule === 'idle') return !state.running && !state.paused;
   if (rule === 'debugger') return state.mode === 'debugger';
   if (rule === 'playground') return state.mode === 'playground';
-  if (rule === 'safe' || rule === 'trusted') return state.profile === rule;
+  if (rule === 'safe' || rule === 'trusted' || rule === 'full-access')
+    return state.profile === rule;
+  if (rule === 'host-access') return state.profile !== 'safe';
   if (rule === 'emscripten' || rule === 'wasi') return state.backend === rule;
   return Boolean(state[rule]);
 }
@@ -68,7 +70,7 @@ function commandArgument(root, node, attribute = 'data-lua-argument') {
  * - `[data-lua-option="backend|profile"]`
  * - `[data-lua-bind="status|output|activeFile|problemCount|..."]`
  * - `[data-lua-enabled="running|paused|idle|debugger"]`
- * - `[data-lua-visible="running|paused|idle|debugger|playground"]`
+ * - `[data-lua-visible="running|paused|idle|debugger|playground|safe|trusted|full-access|host-access"]`
  * - `[data-lua-component="debugPanel|debugConsole|..."]`
  * - `[data-lua-zone="toolbar|sidebar|bottom|..."]`
  * - `[data-lua-command-on-enter="addWatch|evaluate|searchWorkspace|..."]`

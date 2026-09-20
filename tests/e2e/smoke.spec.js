@@ -437,6 +437,25 @@ test('调试器可主动暂停无限循环并保持主线程响应', async ({ pa
   expect(errors).toEqual([]);
 });
 
+test('工作台可切换 full-access 且默认不设置人工配额', async ({ page }) => {
+  const errors = await loadWorkbench(page, 'index.html');
+  await page.locator('select[name="profile"]').selectOption('full-access');
+  await expect(page.locator('.statusbar')).toContainText('完全访问');
+  const options = await page.evaluate(() => {
+    const runtime = document.querySelector('lua-workbench').controller.runtime;
+    return {
+      profile: runtime.options.profile,
+      timeout: runtime.options.timeout,
+      vfsUnlimited: runtime.options.vfsLimit === Infinity
+    };
+  });
+  expect(options).toEqual({
+    profile: 'full-access', timeout: 0, vfsUnlimited: true
+  });
+  await expect(page.getByRole('button', { name: '打开宿主文件夹' })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
 test('变量树折叠父节点会移除所有已展开后代', async ({ page }) => {
   const errors = await loadWorkbench(page, 'index.html');
   const result = await page.evaluate(async () => {

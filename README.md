@@ -110,9 +110,10 @@ lua.dispose();
 显式提供允许 Lua 读取的环境值。
 Lua `io.open` 与 `vfs.write` 接入每实例独立的内存 VFS；`wb` 可原样保存
 `string.dump()` 的二进制字节，经 `readFile()` 取回 `Uint8Array`。`loadfile/dofile`
-从 VFS 读取，安全档只执行文本；可信档允许 `load`/`loadfile` 加载 Lua 字节码。
-默认 VFS 总字节配额安全档 16 MiB、可信档 64 MiB。可信档可通过浏览器授权的
-文件夹句柄挂载 `/host`，访问严格限定在该目录内；写入会持久改变用户所选文件。
+从 VFS 读取，安全档只执行文本；可信档和 full-access 允许 `load`/`loadfile`
+加载 Lua 字节码。默认 VFS 总字节配额安全档 16 MiB、可信档 64 MiB，full-access
+不设人工配额。可信档和 full-access 可通过浏览器授权的文件夹句柄挂载 `/host`，
+访问严格限定在该目录内；写入会持久改变用户所选文件。
 
 调试版使用 `createLuaDebugger`。若 DAP 客户端运行在同一浏览器中，可使用
 不带 stdio `Content-Length` 包装的 structured-clone 消息：
@@ -232,7 +233,7 @@ binding 不拥有它，最终还应由宿主调用 `controller.dispose()`。完�
 Worker 中按源码名与行号二次匹配，入口文件与 `require` 模块存在相同行号时不会
 误停；DAP 调用栈也保留每一帧实际的 Lua `source`。
 
-## 安全档与可信档
+## 安全档、可信档与完全访问档
 
 `safe` 是默认档：Lua 堆 64 MiB、1000 万指令、5 秒活动执行时间、1 MiB
 输出，只开放安全基础库、受限 `package` 与内存 VFS 的 `io/os` 子集。
@@ -243,6 +244,12 @@ Worker 中按源码名与行号二次匹配，入口文件与 `require` 模块�
 显式注册的内存 VFS、Lua 字节码加载，还可挂载用户在浏览器明确授权的文件夹。
 仍禁止进程执行、原生动态库和未授权宿主访问。等待 JS
 Promise 或停在断点的时间不计入活动执行时间。
+
+`full-access` 不设置 Lua 堆、指令、活动执行时间、输出和 VFS 人工配额，并开放
+`trusted` 的全部库、字节码和授权目录能力。它仍运行在浏览器/WASM 沙箱中：实际
+内存受构建的 512 MiB WASM 上限和浏览器资源约束，进程、原生动态库、隐式网络、
+未注册 JS 能力及未获用户授权的文件系统不会因此出现。只可运行完全可信的代码，
+无限循环必须由宿主调用 `interrupt()`/停止按钮终止。
 
 ## 中文支持与语言服务
 

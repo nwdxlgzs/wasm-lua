@@ -319,14 +319,20 @@ async function advance(state, id) {
 
 function createHandle() {
   const config = runtimeConfig;
-  const profile = config.profile === 'trusted' ? 1 : 0;
-  const memoryValue = config.memoryLimit ?? (profile ? 256 : 64) * 1024 * 1024;
-  const instructionValue = config.instructionLimit ?? (profile ? 100000000 : 10000000);
+  const profile = config.profile === 'full-access' ? 2
+    : config.profile === 'trusted' ? 1 : 0;
+  const unlimited = profile === 2;
+  const memoryValue = config.memoryLimit ??
+    (unlimited ? 0 : (profile === 1 ? 256 : 64) * 1024 * 1024);
+  const instructionValue = config.instructionLimit ??
+    (unlimited ? 0 : profile === 1 ? 100000000 : 10000000);
   const memory = BigInt(memoryValue);
   const instructions = BigInt(instructionValue);
-  if (memory <= 0n || memory > 512n * 1024n * 1024n)
-    throw new RangeError('Lua 堆配额必须在 1 到 512 MiB 之间。');
-  if (instructions <= 0n || instructions > 0xffffffffffffffffn)
+  if (memory < 0n || memory > 512n * 1024n * 1024n ||
+      (memory === 0n && !unlimited))
+    throw new RangeError('Lua 堆配额必须在 1 到 512 MiB 之间；full-access 可使用 0 取消人工配额。');
+  if (instructions < 0n || instructions > 0xffffffffffffffffn ||
+      (instructions === 0n && !unlimited))
     throw new RangeError('Lua 指令配额超出 ABI v1 支持范围。');
   handle = backend.create(profile, memory, instructions);
   if (!handle) throw new Error('Unable to create Lua VM.');

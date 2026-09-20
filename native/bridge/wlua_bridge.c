@@ -155,7 +155,7 @@ static void *quota_alloc(void *ud, void *ptr, size_t old_size, size_t new_size) 
     quota->used = old_size <= quota->used ? quota->used - old_size : 0;
     return NULL;
   }
-  if (new_size > old_size &&
+  if (quota->limit && new_size > old_size &&
       (quota->used >= quota->limit || new_size - old_size > quota->limit - quota->used))
     return NULL;
   next = realloc(ptr, new_size);
@@ -409,8 +409,8 @@ static int output_print(lua_State *L) {
     size_t extra;
     const char *text = luaL_tolstring(L, i, &length);
     extra = length + (i > 1 ? 1u : 0u);
-    if (vm->output.length > vm->output_limit ||
-        extra > vm->output_limit - vm->output.length) {
+    if (vm->output_limit && (vm->output.length > vm->output_limit ||
+        extra > vm->output_limit - vm->output.length)) {
       lua_pop(L, 1);
       return luaL_error(L, "output budget exceeded");
     }
@@ -418,7 +418,7 @@ static int output_print(lua_State *L) {
     bwrite(&vm->output, text, length);
     lua_pop(L, 1);
   }
-  if (vm->output.length >= vm->output_limit)
+  if (vm->output_limit && vm->output.length >= vm->output_limit)
     return luaL_error(L, "output budget exceeded");
   bbyte(&vm->output, '\n');
   return 0;
@@ -1038,7 +1038,7 @@ static void configure_libraries(wlua_vm *vm) {
   luaL_requiref(L, LUA_STRLIBNAME, luaopen_string, 1); lua_pop(L, 1);
   luaL_requiref(L, LUA_MATHLIBNAME, luaopen_math, 1); lua_pop(L, 1);
   luaL_requiref(L, LUA_UTF8LIBNAME, luaopen_utf8, 1); lua_pop(L, 1);
-  if (vm->profile == WLUA_PROFILE_TRUSTED) {
+  if (vm->profile != WLUA_PROFILE_SAFE) {
     luaL_requiref(L, LUA_DBLIBNAME, luaopen_debug, 1); lua_pop(L, 1);
     lua_getglobal(L, LUA_DBLIBNAME);
     lua_pushcfunction(L, managed_sethook); lua_setfield(L, -2, "sethook");
@@ -1046,7 +1046,7 @@ static void configure_libraries(wlua_vm *vm) {
     lua_pop(L, 1);
   }
   lua_pushcfunction(L, output_print); lua_setglobal(L, "print");
-  if (vm->profile != WLUA_PROFILE_TRUSTED) {
+  if (vm->profile == WLUA_PROFILE_SAFE) {
     lua_pushcfunction(L, safe_load); lua_setglobal(L, "load");
   }
   lua_pushnil(L); lua_setglobal(L, "loadfile");
@@ -1184,13 +1184,17 @@ WLUA_EXPORT uintptr_t wlua_create(uint32_t profile, uint64_t heap_limit,
   wlua_vm *vm = (wlua_vm *)calloc(1, sizeof(*vm));
   if (!vm) return 0;
   if (heap_limit > MAX_WASM_MEMORY) { free(vm); return 0; }
-  vm->profile = profile == WLUA_PROFILE_TRUSTED
-    ? WLUA_PROFILE_TRUSTED : WLUA_PROFILE_SAFE;
+  vm->profile = profile == WLUA_PROFILE_FULL_ACCESS
+    ? WLUA_PROFILE_FULL_ACCESS
+    : (profile == WLUA_PROFILE_TRUSTED ? WLUA_PROFILE_TRUSTED : WLUA_PROFILE_SAFE);
   vm->allocator.limit = (size_t)(heap_limit ? heap_limit
-    : (vm->profile ? 268435456u : 67108864u));
+    : (vm->profile == WLUA_PROFILE_FULL_ACCESS ? 0u
+      : (vm->profile == WLUA_PROFILE_TRUSTED ? 268435456u : 67108864u)));
   vm->instruction_limit = instruction_limit ? instruction_limit
-    : (vm->profile ? 100000000u : 10000000u);
-  vm->output_limit = vm->profile ? 16777216u : 1048576u;
+    : (vm->profile == WLUA_PROFILE_FULL_ACCESS ? 0u
+      : (vm->profile == WLUA_PROFILE_TRUSTED ? 100000000u : 10000000u));
+  vm->output_limit = vm->profile == WLUA_PROFILE_FULL_ACCESS ? 0u
+    : (vm->profile == WLUA_PROFILE_TRUSTED ? 16777216u : 1048576u);
   vm->run_ref = LUA_NOREF;
   vm->current_line = -1;
   vm->execution = EXECUTION_IDLE;

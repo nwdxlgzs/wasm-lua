@@ -10,7 +10,11 @@ extern "C" {
 
 #define WLUA_ABI_VERSION 0x00010000u
 
-enum wlua_profile { WLUA_PROFILE_SAFE = 0, WLUA_PROFILE_TRUSTED = 1 };
+enum wlua_profile {
+  WLUA_PROFILE_SAFE = 0,
+  WLUA_PROFILE_TRUSTED = 1,
+  WLUA_PROFILE_FULL_ACCESS = 2
+};
 enum wlua_state {
   WLUA_STATE_COMPLETE = 0,
   WLUA_STATE_PAUSED = 1,
