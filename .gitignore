@@ -4,6 +4,7 @@ build/
 generated/
 dist/
 release/
+release-assets/
 vendor/
 public/wasm/
 public/grammar/
