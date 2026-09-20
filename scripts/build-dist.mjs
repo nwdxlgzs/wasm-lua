@@ -1,4 +1,4 @@
-import { cp, mkdir, readdir, rm } from 'node:fs/promises';
+import { cp, mkdir, readdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { root, run } from './lib.mjs';
 
@@ -23,4 +23,6 @@ await cp(site, dist, { recursive: true });
 await cp(path.join(root, 'release'), path.join(dist, 'release'), {
   recursive: true
 });
+// Disable Jekyll processing so GitHub Pages serves the release byte-for-byte.
+await writeFile(path.join(dist, '.nojekyll'), '');
 console.log('Distribution site emitted from the verified release package.');

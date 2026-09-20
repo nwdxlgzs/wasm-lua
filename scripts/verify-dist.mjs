@@ -7,7 +7,7 @@ import { root } from './lib.mjs';
 const dist = path.join(root, 'dist');
 const release = path.join(root, 'release');
 for (const name of [
-  'index.html', 'playground.html', 'debugger.html', 'embedded.html',
+  '.nojekyll', 'index.html', 'playground.html', 'debugger.html', 'embedded.html',
   'licenses.html', 'release/release.json', 'release/integrity.json',
   'release/runtime/wasm-lua.js', 'release/editor/wasm-lua-editor.js'
 ]) if (!existsSync(path.join(dist, name)))
@@ -44,6 +44,24 @@ for (const file of sourceFiles) {
   }
 }
 
+const sitePages = [
+  'index.html', 'playground.html', 'debugger.html', 'embedded.html',
+  'licenses.html'
+];
+const deploymentBase = new URL('https://example.test/wasm-lua/');
+for (const page of sitePages) {
+  const html = await readFile(path.join(dist, page), 'utf8');
+  const rootAbsolute = [...html.matchAll(/\b(?:src|href)=["']\/(?!\/)/g)];
+  if (rootAbsolute.length)
+    throw new Error(`${page} contains an origin-root asset or navigation URL.`);
+  for (const match of html.matchAll(/\b(?:src|href)=["']([^"']+)["']/g)) {
+    const value = match[1];
+    if (/^(?:[a-z]+:|#)/i.test(value)) continue;
+    const resolved = new URL(value, new URL(page, deploymentBase));
+    if (!resolved.pathname.startsWith(deploymentBase.pathname))
+      throw new Error(`${page} escapes a subpath deployment: ${value}`);
+  }
+}
 for (const page of ['index.html', 'playground.html', 'debugger.html']) {
   const html = await readFile(path.join(dist, page), 'utf8');
   const scripts = [...html.matchAll(/<script[^>]+src="([^"]+)"/g)];
@@ -56,8 +74,16 @@ const combined = (await Promise.all(scripts.map(file => readFile(file.absolute, 
   .join('\n');
 if (!combined.includes('release/') || !combined.includes('wasm-lua-editor'))
   throw new Error('dist site adapter does not import the shipped release editor.');
+if (combined.includes('../release/'))
+  throw new Error('dist site adapter escapes the deployment prefix for release assets.');
 if (combined.includes('createLuaRuntime') || combined.includes('monaco-editor'))
   throw new Error('dist site adapter appears to embed source runtime/editor code.');
+
+const shippedEditor = await readFile(
+  path.join(dist, 'release', 'editor', 'wasm-lua-editor.js'), 'utf8');
+if (shippedEditor.includes('"/licenses.html"') ||
+    shippedEditor.includes("'/licenses.html'"))
+  throw new Error('Release editor hard-codes an origin-root license URL.');
 
 for (const file of await filesBelow(dist))
   if (file.relative.endsWith('.map') || /lua-5\.5\.1-tests|lua-official/i.test(file.absolute))

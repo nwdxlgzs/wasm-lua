@@ -1,4 +1,4 @@
-const releaseRoot = new URL('../release/', document.baseURI);
+const releaseRoot = new URL('./release/', document.baseURI);
 const style = document.createElement('link');
 style.rel = 'stylesheet';
 style.href = new URL('editor/wasm-lua-editor.css', releaseRoot).href;

@@ -84,6 +84,12 @@ export class LuaWorkbench extends LitElement {
   get paused() { return this.controller?.paused ?? false; }
   get output() { return this.controller?.output ?? ''; }
 
+  get licenseUrl() {
+    const configured = this.workbenchOptions?.licenseUrl ??
+      this.getAttribute('license-url') ?? './licenses.html';
+    return new URL(configured, document.baseURI).href;
+  }
+
   async firstUpdated() {
     try {
       const supplied = this.workbenchOptions ?? {};
@@ -918,7 +924,7 @@ export class LuaWorkbench extends LitElement {
           <span>${state.cursor ? `${state.cursor.lineNumber}:${state.cursor.column}` : ''}</span>
           <span class="right">${state.activeFile} · ${state.backend.toUpperCase()} ·
             ${state.profile === 'safe' ? '安全档' : '可信档'} · Lua 5.5.1 ·
-            <a href="/licenses.html">许可证</a></span>
+            <a href=${this.licenseUrl}>许可证</a></span>
           ${this.pluginZone('statusbar')}
         </footer>`)}
       </div>

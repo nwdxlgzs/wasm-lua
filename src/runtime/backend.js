@@ -37,10 +37,11 @@ function normalizeExports(exports, memory, heapView = null) {
   };
 }
 
-export async function loadBackend(kind, debug, assetBaseUrl = '/wasm/') {
+export async function loadBackend(kind, debug,
+  assetBaseUrl = new URL('../wasm/', import.meta.url).href) {
   const flavor = debug ? 'debug' : 'runtime';
   const base = new URL(assetBaseUrl.endsWith('/')
-    ? assetBaseUrl : assetBaseUrl + '/', self.location.origin);
+    ? assetBaseUrl : assetBaseUrl + '/', import.meta.url);
   const required = kind === 'emscripten'
     ? [`emscripten-lua-${flavor}.mjs`, `emscripten-lua-${flavor}.wasm`]
     : [`wasi-lua-${flavor}.wasm`];

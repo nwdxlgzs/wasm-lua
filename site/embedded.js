@@ -1,4 +1,4 @@
-const releaseRoot = new URL('../release/', document.baseURI);
+const releaseRoot = new URL('./release/', document.baseURI);
 const editorUrl = new URL('editor/wasm-lua-editor.js', releaseRoot).href;
 const editorStyle = document.createElement('link');
 editorStyle.rel = 'stylesheet';

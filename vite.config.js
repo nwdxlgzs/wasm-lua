@@ -3,6 +3,10 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   appType: 'mpa',
   publicDir: false,
+  // The production site is also published below a repository prefix (for
+  // example /wasm-lua/ on GitHub Pages). Keep every emitted page asset
+  // relative to the HTML document instead of assuming an origin root.
+  base: './',
   build: {
     outDir: 'build/site',
     emptyOutDir: true,

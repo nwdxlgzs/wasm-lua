@@ -481,6 +481,8 @@ clone，不带 stdio 的 `Content-Length` 外壳。初始化响应的
     storageKey: 'my-product-lua',
     workspaceId: 'editor-main',
     environment: { APP_ENV: 'production' },
+    // 可选；默认相对当前宿主页解析为 ./licenses.html。
+    licenseUrl: './open-source-licenses.html',
     editorOptions: { fontSize: 14, minimap: { enabled: false } },
     keybindings: { run: 'Ctrl+Enter', gotoLine: 'Ctrl+L' },
     capabilities: { 'app.currentUser': () => ({ name: '用户' }) },
@@ -789,7 +791,11 @@ Monaco 会设置必要的元素内联 style，因此严格 CSP 可使用宿主�
 SharedArrayBuffer/线程，通常不要求 COOP/COEP。所有 Worker 与 WASM URL 必须
 保持同源或具备正确 CORS。
 
-子路径部署时保持 release 内部结构即可，SDK/编辑器以各自模块 URL 定位资源；
+子路径部署时保持 release 内部结构即可，SDK/编辑器以各自模块 URL 定位资源；完整
+工作台的许可证入口默认相对 `document.baseURI`，宿主可通过 `licenseUrl` 选项或
+`license-url` 属性改写。站点入口必须使用相对 `src/href`，不要把 `/assets/`、
+`/release/` 或 `/licenses.html` 写成站点根路径。GitHub Pages 等仓库子路径可以直接
+部署 `dist/` 内容。
 只有把 WASM 单独托管到别处时才填写绝对 `assetBaseUrl`。hashed `assets/` 可 `immutable` 长缓存；固定文件名的 WASM
 应配合版本目录缓存。`integrity.json` 自身应短缓存或随版本目录原子发布。
 

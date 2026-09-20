@@ -61,7 +61,8 @@ import { COMMAND_LABELS, parseKeybinding, resolveKeybindings } from './keybindin
  *     WorkbenchDisposable|Promise<WorkbenchDisposable>,
  *   dispose?: (context: LuaWorkbenchPluginContext) => void}} LuaWorkbenchPlugin
  * @typedef {{mode?: WorkbenchMode, backend?: WorkbenchBackend,
- *   profile?: WorkbenchProfile, assetBaseUrl?: string, storageKey?: string,
+ *   profile?: WorkbenchProfile, assetBaseUrl?: string, licenseUrl?: string,
+ *   storageKey?: string,
  *   environment?: Record<string, string>,
  *   backends?: WorkbenchBackend[],
  *   theme?: string|{name: string,
